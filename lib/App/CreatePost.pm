@@ -8,6 +8,7 @@ use URI::Escape::JavaScript qw(escape unescape);
 use App::Auth;
 use App::PostTitle;
 use App::Format;
+use App::SaveMarkup;
 
 sub create_post {
 
@@ -107,11 +108,13 @@ sub create_post {
         Error::report_error("400", "Unable to create post.", $rc->{msg});
     }
 
-
     if ( Config::get_value_for("write_html_to_memcached") ) {
 #        Post::_write_html_to_memcached($rc->{'json'}->{'id'});
     }
 
+    if ( Config::get_value_for("save_markup_to_file_system") ) {
+        SaveMarkup::save_markup($cdb_hash);
+    }
 
     $hash_ref->{post_id}     = $slug;
     $hash_ref->{rev}         = $rc->{json}->{rev};
@@ -121,8 +124,8 @@ sub create_post {
     my $json_str = JSON::encode_json $hash_ref;
     print CGI::header('application/json', '200 Accepted');
     print $json_str;
-    exit;
 
+    exit;
 }
 
 1;

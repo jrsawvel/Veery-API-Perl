@@ -39,8 +39,9 @@ sub read_stream {
     }
 
     my $hash_ref;
-    $hash_ref->{status}      = 200;
-    $hash_ref->{description} = "OK";
+    $hash_ref->{status}         = 200;
+    $hash_ref->{description}    = "OK";
+    $hash_ref->{next_link_bool} = $next_link_bool;
     $hash_ref->{posts}       = \@posts;
     my $json_str = JSON::encode_json $hash_ref;
 

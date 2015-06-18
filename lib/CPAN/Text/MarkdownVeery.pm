@@ -59,7 +59,7 @@ This module implements the 'original' Markdown markdown syntax from:
 
 Note that L<Text::Markdown> ensures that the output always ends with
 B<one> newline. The fact that multiple newlines are collapsed into one
-makes sense, because this is the behavior of HTML towards whispace. The
+makes sense, because this is the behavior of HTML towards whitespace. The
 fact that there's always a newline at the end makes sense again, given
 that the output will always be nested in a B<block>-level element (as
 opposed to an inline element). That block element can be a C<< <p> >>
@@ -166,6 +166,7 @@ sub new {
 
     $p{tab_width} = 4 unless (defined $p{tab_width} and $p{tab_width} =~ m/^\d+$/);
 
+    # jrs - added in 2013
     $p{newline_to_br} = 0 unless (defined $p{newline_to_br} and $p{newline_to_br} =~ m/^\d+$/ and $p{newline_to_br} > 0);
 
     $p{empty_element_suffix} ||= ' />'; # Change to ">" for HTML output
@@ -393,7 +394,9 @@ sub _HashHTMLBlocks {
                     my $markdown = $2;
                     if ($markdown =~ /^(1|on|yes)$/) {
                         # interpret markdown and reconstruct $tag to include the interpreted $text_in_tag
-                        my $wrap_in_p_tags = $opening_tag =~ /^<(div|iframe)/;
+#                        my $wrap_in_p_tags = $opening_tag =~ /^<(div|iframe)/;
+# jrs - added blockquote to list - 29may2015
+                        my $wrap_in_p_tags = $opening_tag =~ /^<(div|blockquote|iframe)/;
                         $tag = $prefix . $opening_tag . "\n"
                           . $self->_RunBlockGamut($text_in_tag, {wrap_in_p_tags => $wrap_in_p_tags})
                           . "\n" . $closing_tag
@@ -488,7 +491,7 @@ sub _HashPHPASPBlocks {
     my ($self, $text) = @_;
     my $less_than_tab = $self->{tab_width} - 1;
 
-    # PHP and ASP-style processor instructions (<?…?> and <%…%>)
+    # PHP and ASP-style processor instructions (<?.?> and <%.%>)
     $text =~ s{
                 (?:
                     (?<=\n\n)        # Starting after a blank line
@@ -613,8 +616,6 @@ sub _EscapeSpecialChars {
             # with the escape values by accident.
             $cur_token->[1] =~  s! \* !$g_escape_table{'*'}!ogx;
             $cur_token->[1] =~  s! _  !$g_escape_table{'_'}!ogx;
-            $cur_token->[1] =~  s! \- !$g_escape_table{'-'}!ogx;
-            $cur_token->[1] =~  s! \+ !$g_escape_table{'+'}!ogx;
             $text .= $cur_token->[1];
         } else {
             my $t = $cur_token->[1];
@@ -643,8 +644,6 @@ sub _EscapeSpecialCharsWithinTagAttributes {
             $cur_token->[1] =~  s{ (?<=.)</?code>(?=.)  }{$g_escape_table{'`'}}gox;
             $cur_token->[1] =~  s! \* !$g_escape_table{'*'}!gox;
             $cur_token->[1] =~  s! _  !$g_escape_table{'_'}!gox;
-            $cur_token->[1] =~  s! \- !$g_escape_table{'-'}!gox;
-            $cur_token->[1] =~  s! \+ !$g_escape_table{'+'}!gox;
         }
         $text .= $cur_token->[1];
     }
@@ -758,8 +757,6 @@ sub _GenerateAnchor {
 
     $url =~ s! \* !$g_escape_table{'*'}!gox;    # We've got to encode these to avoid
     $url =~ s!  _ !$g_escape_table{'_'}!gox;    # conflicting with italics/bold.
-    $url =~ s! \- !$g_escape_table{'-'}!gox;    # 
-    $url =~ s! \+ !$g_escape_table{'+'}!gox;    # 
     $url =~ s{^<(.*)>$}{$1};                    # Remove <>'s surrounding URL, if present
 
     $result = qq{<a href="$url"};
@@ -772,8 +769,6 @@ sub _GenerateAnchor {
         $title =~ s/"/&quot;/g;
         $title =~ s! \* !$g_escape_table{'*'}!gox;
         $title =~ s!  _ !$g_escape_table{'_'}!gox;
-        $title =~ s! \- !$g_escape_table{'-'}!gox;
-        $title =~ s! \+ !$g_escape_table{'+'}!gox;
         $result .=  qq{ title="$title"};
     }
 
@@ -876,8 +871,6 @@ sub _GenerateImage {
 
     $url =~ s! \* !$g_escape_table{'*'}!ogx;     # We've got to encode these to avoid
     $url =~ s!  _ !$g_escape_table{'_'}!ogx;     # conflicting with italics/bold.
-    $url =~ s! \- !$g_escape_table{'-'}!ogx;     # 
-    $url =~ s! \+ !$g_escape_table{'+'}!ogx;     # 
     $url =~ s{^<(.*)>$}{$1};                    # Remove <>'s surrounding URL, if present
 
     if (!defined $title && length $link_id && defined $self->{_titles}{$link_id} && length $self->{_titles}{$link_id}) {
@@ -888,8 +881,6 @@ sub _GenerateImage {
     if (defined $title && length $title) {
         $title =~ s! \* !$g_escape_table{'*'}!ogx;
         $title =~ s!  _ !$g_escape_table{'_'}!ogx;
-        $title =~ s! \- !$g_escape_table{'-'}!ogx;
-        $title =~ s! \+ !$g_escape_table{'+'}!ogx;
         $title    =~ s/"/&quot;/g;
         $result .=  qq{ title="$title"};
     }
@@ -958,7 +949,7 @@ sub _DoLists {
     my $marker_ol  = qr/\d+[.]/;
     my $marker_any = qr/(?:$marker_ul|$marker_ol)/;
 
-    # Re-usable pattern to match any entirel ul or ol list:
+    # Re-usable pattern to match any entire ul or ol list:
     my $whole_list = qr{
         (                               # $1 = whole list
           (                             # $2
@@ -993,7 +984,7 @@ sub _DoLists {
     # same script on the same server ran fine *except* under MT. I've spent
     # more time trying to figure out why this is happening than I'd like to
     # admit. My only guess, backed up by the fact that this workaround works,
-    # is that Perl optimizes the substition when it can figure out that the
+    # is that Perl optimizes the substitution when it can figure out that the
     # pattern will never change, and when this optimization isn't on, we run
     # afoul of the reaper. Thus, the slightly redundant code to that uses two
     # static s/// patterns rather than one conditional pattern.
@@ -1294,8 +1285,6 @@ sub _EncodeCode {
     # Now, escape characters that are magic in Markdown:
     s! \* !$g_escape_table{'*'}!ogx;
     s! _  !$g_escape_table{'_'}!ogx;
-    s! \- !$g_escape_table{'-'}!ogx;
-    s! \+ !$g_escape_table{'+'}!ogx;
     s! {  !$g_escape_table{'{'}!ogx;
     s! }  !$g_escape_table{'}'}!ogx;
     s! \[ !$g_escape_table{'['}!ogx;
@@ -1394,15 +1383,22 @@ sub _FormParagraphs {
     }
 
     #
-    # Unhashify HTML blocks
+    # Unhashify HTML blocks.  Handles nested hashification, ie. block inside comment.
     #
-    foreach (@grafs) {
-        if (defined( $self->{_html_blocks}{$_} )) {
-            $_ = $self->{_html_blocks}{$_};
+    my @unhashified;
+    while (scalar @grafs) {
+        my $graf = shift @grafs;
+        if (defined( $self->{_html_blocks}{$graf} )) {
+            $graf = $self->{_html_blocks}{$graf};
+            my @subgrafs = split(/\n{2,}/, $graf);
+            unshift @grafs, @subgrafs;
+        }
+        else {
+            push @unhashified, $graf;
         }
     }
 
-    return join "\n\n", @grafs;
+    return join "\n\n", @unhashified;
 }
 
 sub _EncodeAmpsAndAngles {
@@ -1440,7 +1436,7 @@ sub _EncodeAmpsAndAngles {
 sub _EncodeBackslashEscapes {
 #
 #   Parameter:  String.
-#   Returns:    The string, with after processing the following backslash
+#   Returns:    The string, after processing the following backslash
 #               escape sequences.
 #
     my $self = shift;
@@ -1816,3 +1812,4 @@ negligence or otherwise) arising in any way out of the use of this
 software, even if advised of the possibility of such damage.
 
 =cut
+

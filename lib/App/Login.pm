@@ -14,9 +14,10 @@ sub create_and_send_no_password_login_link {
     my $hash_ref_login = JSON::decode_json $json_text;
 
     my $user_submitted_email = Utils::trim_spaces($hash_ref_login->{'email'});
+    my $client_url           = Utils::trim_spaces($hash_ref_login->{'url'});
 
-    if ( !$user_submitted_email ) {
-        Error::report_error("400", "Invalid input.", "No data was submitted.");
+    if ( !$user_submitted_email or !$client_url ) {
+        Error::report_error("400", "Invalid input.", "Insufficent data was submitted.");
     }
 
     my $author_name  = Config::get_value_for("author_name");
@@ -28,7 +29,7 @@ sub create_and_send_no_password_login_link {
         Error::report_error("400", "Invalid input.", "Data was not found.");
     } else {
         $rev = _create_session_id(); 
-        _send_login_link($author_email, $rev);
+        _send_login_link($author_email, $rev, $client_url);
     }
 
     my $hash_ref;
@@ -50,6 +51,7 @@ sub create_and_send_no_password_login_link {
 sub _send_login_link {
     my $email_rcpt      = shift;
     my $rev             = shift;
+    my $client_url      = shift;
 
     my $date_time = Utils::create_datetime_stamp();
 
@@ -58,7 +60,7 @@ sub _send_login_link {
     my $mailgun_from    = Config::get_value_for("mailgun_from");
 
     my $home_page = Config::get_value_for("home_page");
-    my $link      = "$home_page/nopwdlogin/$rev";
+    my $link      = "$client_url/$rev";
 
     my $site_name = Config::get_value_for("site_name");
     my $subject = "$site_name Login Link - $date_time UTC";
@@ -142,11 +144,8 @@ sub activate_no_password_login {
 
     my $hash_ref;
 
-    if ( Config::get_value_for("debug_mode") ) {
-        $hash_ref->{author_name} = Config::get_value_for("author_name");
-        $hash_ref->{session_id}  = $session_id;
-    }
-
+    $hash_ref->{author_name} = Config::get_value_for("author_name");
+    $hash_ref->{session_id}  = $session_id;
     $hash_ref->{status}           = 200;
     $hash_ref->{description}      = "OK";
 

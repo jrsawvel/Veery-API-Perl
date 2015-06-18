@@ -26,6 +26,8 @@ sub users {
             Login::activate_no_password_login();
         } elsif ( exists($tmp_hash->{one}) and $tmp_hash->{one} eq "logout" ) {
             Logout::logout();
+        } elsif ( exists($tmp_hash->{one}) ) {
+            UserSettings::get_user_info($tmp_hash->{one});
         }
     }
 

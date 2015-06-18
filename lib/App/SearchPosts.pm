@@ -71,7 +71,6 @@ sub do_string_search {
         delete($hash_ref->{'_source'}->{'_rev'});
         delete($hash_ref->{'_source'}->{'post_status'});
         delete($hash_ref->{'_source'}->{'type'});
-        delete($hash_ref->{'_source'}->{'title'});
         delete($hash_ref->{'_source'}->{'word_count'});
 
         push(@posts, $hash_ref->{'_source'});
@@ -136,7 +135,7 @@ sub do_tag_search {
 
     my $ctr=0;
     foreach my $hash_ref ( @$stream ) {
-        $hash_ref->{'value'}->{'updated_at'} = Utils::format_date_time($hash_ref->{'value'}->{'updated_at'});
+        $hash_ref->{'value'}->{'formatted_updated_at'} = Utils::format_date_time($hash_ref->{'value'}->{'updated_at'});
         push(@posts, $hash_ref->{'value'});
         last if ++$ctr == $max_entries;
     }

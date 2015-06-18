@@ -43,7 +43,7 @@ sub hashtag_to_link {
     my $tagsearchurl = "/tag/";
     if ( (@tags = $str =~ m|\s#(\w+)|gsi) ) {
             foreach (@tags) {
-                next if  is_numeric($_); 
+                next if  Utils::is_numeric($_); 
                 $tagsearchstr = " <a href=\"$tagsearchurl$_\">#$_</a>";
                 $str =~ s|\s#$_|$tagsearchstr|is;
         }
@@ -94,9 +94,13 @@ sub custom_commands {
     # hr.
     # more.
     # fence. and fence..
+    # pq. and pq..
 
-    $formattedcontent =~ s/^q[.][.]/\n<\/div>/igm;
-    $formattedcontent =~ s/^q[.]/<div class="highlighted" markdown="1">/igm;
+#    $formattedcontent =~ s/^q[.][.]/\n<\/div>/igm;
+#    $formattedcontent =~ s/^q[.]/<div class="highlighted" markdown="1">/igm;
+
+    $formattedcontent =~ s/^q[.][.]/\n<\/blockquote>/igm;
+    $formattedcontent =~ s/^q[.]/<blockquote class="highlighted" markdown="1">\n/igm;
 
     $formattedcontent =~ s/^hr[.]/<hr class="shortgrey" \/>/igm;
 
@@ -106,6 +110,9 @@ sub custom_commands {
 
     $formattedcontent =~ s/^fence[.][.]/<\/code><\/pre><\/div>/igm;
     $formattedcontent =~ s/^fence[.]/<div class="fenceClass"><pre><code>/igm;
+
+    $formattedcontent =~ s/pq[.][.]/<\/em><\/big><\/center>/igm;
+    $formattedcontent =~ s/^pq[.]/<center><big><em>/igm;
 
     return $formattedcontent;
 }
@@ -122,7 +129,7 @@ sub markup_to_html {
     my $html   = remove_power_commands($markup);
 
     my $newline_to_br = 1;
-    $newline_to_br    = 0 if !Utils::get_power_command_on_off_setting_for("newline_to_br", $markup, 1);
+    $newline_to_br    = 0 if !get_power_command_on_off_setting_for("newline_to_br", $markup, 1);
 
     $html = process_embedded_media($html);
 
@@ -261,12 +268,12 @@ sub process_embedded_media {
                 $width  = $size[0];
                 $height = $size[1];
                 my $img_url = _get_instagram_image_url($parts[0]);
-                $insta = qq(<img src="$img_url" width="$width" height="$height"></img>);
+                $insta = qq(<img src="$img_url" width="$width" height="$height"></img> <a href="$img_url">link</a>);
             }
            
         } else {
             my $img_url = _get_instagram_image_url($url);
-            $insta = qq(<img src="$img_url" width="$width" height="$height"></img>);
+            $insta = qq(<img src="$img_url" width="$width" height="$height"></img> <a href="$img_url">link</a>);
         }
 
         $str =~ s|\Q$cmd$url|$insta|;    

@@ -10,6 +10,7 @@ use URI::Escape::JavaScript qw(escape unescape);
 use App::Auth;
 use App::PostTitle;
 use App::Format;
+use App::SaveMarkup;
 
 sub update_post {
 
@@ -48,9 +49,9 @@ sub update_post {
     if ( $formtype eq "ajax" ) {
         $markup = URI::Escape::JavaScript::unescape($markup);
     } else {
-        $markup = Encode::decode_utf8($markup);
+#        $markup = Encode::decode_utf8($markup);
     }
-    $markup = HTML::Entities::encode($markup, '^\n\x20-\x25\x27-\x7e');
+#    $markup = HTML::Entities::encode($markup, '^\n\x20-\x25\x27-\x7e');
 
     my $o = PostTitle->new();
     $o->process_title($markup);
@@ -67,6 +68,7 @@ sub update_post {
 
     if ( $submit_type eq "Preview" ) {
         $hash_ref->{html} = $html;
+        $hash_ref->{title} = $title;
         $hash_ref->{status}      = 200;
         $hash_ref->{description} = "OK";
         my $json_str = JSON::encode_json $hash_ref;
@@ -113,7 +115,11 @@ sub update_post {
 
 
     if ( Config::get_value_for("write_html_to_memcached") ) {
-        Post::_write_html_to_memcached($post_id);
+#        Post::_write_html_to_memcached($post_id);
+    }
+
+    if ( Config::get_value_for("save_markup_to_file_system") ) {
+        SaveMarkup::save_markup($previous_post_hash);
     }
 
 

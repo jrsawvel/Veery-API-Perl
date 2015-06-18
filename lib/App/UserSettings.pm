@@ -24,6 +24,9 @@ sub update_author_info {
         Error::report_error("400", "Unable to peform action.", "You are not logged in.");
     }
 
+    my $submitted_id  = $input_hash_ref->{'id'};
+    my $submitted_rev = $input_hash_ref->{'rev'};
+
     my $old_email = Utils::trim_spaces($input_hash_ref->{'old_email'});
     my $new_email = Utils::trim_spaces($input_hash_ref->{'new_email'});
 
@@ -32,7 +35,7 @@ sub update_author_info {
     my $c = CouchDB::Client->new();
     $c->testConnection or Error::report_error("500", "Database error.", "The server cannot be reached.");
 
-    my $db = "scaupdvlp1";
+    my $db = Config::get_value_for("database_name");
 
     $rc = $c->req('GET', $db . '/_design/views/_view/author?key="' . $logged_in_author_name . '"');
 
@@ -62,6 +65,14 @@ sub update_author_info {
         Error::report_error("400", "Unable to peform action.", "The provided old email address does not match the email address contained in the database.");
     }
 
+    if ( $submitted_id ne $author_info->{'_id'} ) {
+        Error::report_error("400", "Unable to peform action.", "Invalid user information provided. (A)");
+    }
+
+    if ( $submitted_rev ne $author_info->{'_rev'} ) {
+        Error::report_error("400", "Unable to peform action.", "Invalid user information provided. (B)");
+    }
+
     $author_info->{'email'} = $new_email;
 
     $rc = $c->req('PUT', $db . "/$author_info->{_id}", $author_info);
@@ -79,6 +90,59 @@ sub update_author_info {
     print $json_output;
     exit;
 }
+
+sub get_user_info {
+    my $author_name = shift;
+
+    if ( !$author_name ) {
+        Error::report_error("400", "Unable to complete action.", "Author name was missing.");
+    }
+
+    my $q   = new CGI;
+
+    my $logged_in_author_name = $q->param("author");
+    my $logged_in_session_id  = $q->param("session_id");
+
+    my $is_logged_in = 0;
+
+    if ( Auth::is_valid_login($logged_in_author_name, $logged_in_session_id) ) { 
+        $is_logged_in = 1;
+    }
+
+    my $rc;
+
+    my $c = CouchDB::Client->new();
+    $c->testConnection or Error::report_error("500", "Database error.", "The server cannot be reached.");
+
+    my $db = Config::get_value_for("database_name");
+
+    $rc = $c->req('GET', $db . '/_design/views/_view/author?key="' . $author_name . '"');
+
+    if ( !$rc->{'json'}->{'rows'}->[0] ) {
+        Error::report_error("400", "Unable to complete action.", "Author not found. $author_name");
+    }
+
+    my $author_info = $rc->{'json'}->{'rows'}->[0]->{'value'};
+
+    if ( !$is_logged_in ) {
+        delete($author_info->{'_id'});
+        delete($author_info->{'_rev'});
+        delete($author_info->{'email'});
+        delete($author_info->{'current_session_id'});
+    }
+
+    $author_info->{is_logged_in}= $is_logged_in;
+    $author_info->{status}      = 200;
+    $author_info->{description} = "OK";
+
+    my $json_output = JSON::encode_json $author_info;
+
+    print CGI::header('application/json', '200 Accepted');
+    print $json_output;
+    exit;
+
+}
+
 
 1;
 

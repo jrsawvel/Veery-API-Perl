@@ -1,23 +1,15 @@
 ---
-#    template_home:                  /home/veery/Veery-API-Perl/tmpl
     site_name:                      Veery
-#    app_name:                       Veery v1.0
-    home_page:                      http://mysitename.com
-#    site_description:               Veery Blog App
-#    domain_name:                    mysitename.com
-#    css_dir_url:                    http://mysitename.com/css 
-#    maincss_url:                    http://mysitename.com/css/grebe.css
-    api_url:                        http://mysitename.com/api
-#    cookie_prefix:                  veery 
+    home_page:                      http://websitedomain
+    domain_name:                    websitedomain
+    post_markup:                    /home/veery/markup
+    api_url:                        http://websitedomain/api
     max_entries_on_page:            15 
-    database_name:                  testdb
-    mailgun_api_key:                api-key
-    mailgun_domain:                 domain-info
-    mailgun_from:                   from-info
-    debug_mode:                     1
+    database_name:                  db_user_name
+    mailgun_api_key:                mailgun_api_key
+    mailgun_domain:                 mailgun_domain_name
+    mailgun_from:                   Mailgun Sandbox <mailgun info>
+    debug_mode:                     0
 #    multiple_sessionids:            1
-#    memcached_port:                 11211
-#    write_html_to_memcached:        1
-#    write_html_to_redis:            1
+    save_markup_to_file_system:     1        
     author_name:                    AuthorName
-#    author_profile:                 profile
