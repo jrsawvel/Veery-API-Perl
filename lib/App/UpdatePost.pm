@@ -62,7 +62,8 @@ sub update_post {
     my $post_type       = $o->get_content_type(); # article or note
     # my $slug            = $o->get_slug();
     my $slug            = $post_id;
-    my $html            = Format::markup_to_html($markup, $o->get_markup_type(), $slug);
+#    my $html            = Format::markup_to_html($markup, $o->get_markup_type(), $slug);
+    my $html            = Format::markup_to_html($o->get_after_title_markup(), $o->get_markup_type(), $slug);
 
     my $hash_ref;
 

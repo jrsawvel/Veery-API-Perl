@@ -4,7 +4,7 @@ use strict;
 use warnings;
 
 use Text::Textile;
-use Text::MarkdownVeery;
+use Text::MultiMarkdownVeery;
 use LWP::Simple;
 use HTML::TokeParser;
 
@@ -58,7 +58,7 @@ sub remove_power_commands {
     # toc=yes|no    (table of contents for the article)
     # url_to_link=yes|no
     # hashtag_to_link=yes|no
-    # markdown=yes|no
+    # markdown=yes|no - needed because the default markup for a note is textile. this overrides it.
     # newline_to_br=yes|no
 
     $str =~ s|^toc[\s]*=[\s]*[noNOyesYES]+||mig;
@@ -111,6 +111,9 @@ sub custom_commands {
     $formattedcontent =~ s/^fence[.][.]/<\/code><\/pre><\/div>/igm;
     $formattedcontent =~ s/^fence[.]/<div class="fenceClass"><pre><code>/igm;
 
+    $formattedcontent =~ s/^code[.][.]/<\/code><\/pre><\/div>/igm;
+    $formattedcontent =~ s/^code[.]/<div class="codeClass"><pre><code>/igm;
+
     $formattedcontent =~ s/pq[.][.]/<\/em><\/big><\/center>/igm;
     $formattedcontent =~ s/^pq[.]/<center><big><em>/igm;
 
@@ -131,6 +134,8 @@ sub markup_to_html {
     my $newline_to_br = 1;
     $newline_to_br    = 0 if !get_power_command_on_off_setting_for("newline_to_br", $markup, 1);
 
+    $html = process_custom_code_block_encode($html);
+
     $html = process_embedded_media($html);
 
     $html = Utils::url_to_link($html) if get_power_command_on_off_setting_for("url_to_link", $markup, 1);
@@ -143,10 +148,12 @@ sub markup_to_html {
         my $textile = new Text::Textile;
         $html = $textile->process($html);
     } else {
-        my $md   = Text::MarkdownVeery->new;
+        my $md   = Text::MultiMarkdownVeery->new;
         $html = $md->markdown($html, {newline_to_br => $newline_to_br, heading_ids => 0}  );
         # $html = $md->markdown($html, {heading_ids => 0} );
     }
+
+    $html = process_custom_code_block_decode($html);
 
     # why do this?
     $html =~ s/&#39;/'/sg;
@@ -253,6 +260,8 @@ sub process_embedded_media {
 
     my $cmd = "";
     my $url = "";
+
+
     while ( $str =~ m|^(insta[\s]*=[\s]*)(.*?)$|mi ) {
         $cmd=$1;
         $url        = Utils::trim_spaces($2);
@@ -303,6 +312,33 @@ sub _get_instagram_image_url {
     }
 
     return $img_url;
+}
+
+sub process_custom_code_block_encode {
+    my $str = shift;
+
+    # code. and code.. custom block
+
+    while ( $str =~ m/(.*?)code\.(.*?)code\.\.(.*)/is ) {
+        my $start = $1;
+        my $code  = $2;
+        my $end   = $3;
+        $code =~ s/</\[lt;/gs;
+        $code =~ s/>/gt;\]/gs;
+        $str = $start . "ccooddee." . $code . "ccooddee.." . $end;
+    } 
+    $str =~ s/ccooddee/code/igs;
+ 
+    return $str;
+}
+
+sub process_custom_code_block_decode {
+    my $str = shift;
+
+    $str =~ s/\[lt;/&lt;/gs;
+    $str =~ s/gt;\]/&gt;/gs;
+
+    return $str;
 }
 
 1;
