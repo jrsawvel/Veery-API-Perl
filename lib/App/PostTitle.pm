@@ -12,6 +12,7 @@ use NEXT;
         my ($class) = @_;
 
         my $ self = {
+            max_title_len      => $MAX_TITLE_LEN,
             after_title_markup => undef,
             err                => 0,
             err_str            => undef,
@@ -33,15 +34,15 @@ use NEXT;
 
         if ( $self->{title} =~ m/(.+)/ ) {
             my $tmp_title = $1;
-            if ( length($tmp_title) < $MAX_TITLE_LEN+1  ) {
+            if ( length($tmp_title) < $self->{max_title_len}+1  ) {
                 my $tmp_title_len = length($tmp_title);
                 $self->{title} = $tmp_title;
                 my $tmp_total_len = length($markup);
                 $self->{after_title_markup} = substr $markup, $tmp_title_len, $tmp_total_len - $tmp_title_len;
             } else {
-                $self->{title} = substr $markup, 0, $MAX_TITLE_LEN;
+                $self->{title} = substr $markup, 0, $self->{max_title_len};
                 my $tmp_total_len = length($markup);
-                $self->{after_title_markup} = substr $markup, $MAX_TITLE_LEN, $tmp_total_len - $MAX_TITLE_LEN;
+                $self->{after_title_markup} = substr $markup, $self->{max_title_len}, $tmp_total_len - $self->{max_title_len};
             }   
         }
         if ( !defined($self->{title}) || length($self->{title}) < 1 ) {
@@ -58,8 +59,8 @@ use NEXT;
                 $self->{markup_type} = "markdown";
             } else {
                 $self->{content_type} = "note";
+                $self->{after_title_markup} = $markup;
                 if ( length($self->{title}) > 75 ) {
-                    $self->{after_title_markup} = $markup;
                     $self->{title} = substr $self->{title}, 0, 75;
                 }
             }
@@ -73,6 +74,10 @@ use NEXT;
     sub set_post_id {
         my ($self, $postid) = @_;
         $self->{postid} = $postid;
+    }
+    sub set_max_title_len {
+        my ($self, $max_title_len) = @_;
+        $self->{max_title_len} = $max_title_len;
     }
 
     sub get_title {

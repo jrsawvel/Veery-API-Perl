@@ -6,6 +6,12 @@ server {
 	listen   80; 
 	server_name veeryapiperl.soupmode.com;
 
+#        location ~ ^/(css/|javascript/|images/) {
+#          root /home/scaup/Scaup/root;
+#          access_log off;
+#          expires max;
+#        }
+
         location /api {
     if ($request_method = 'OPTIONS') {
         add_header 'Access-Control-Allow-Origin' '*';

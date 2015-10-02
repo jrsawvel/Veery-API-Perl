@@ -12,8 +12,10 @@ sub do_string_search {
 
     my $page_num = 1;
 
-    if ( Utils::is_numeric($tmp_hash->{three}) ) {
-        $page_num = $tmp_hash->{three};
+    my $q = new CGI;
+
+    if ( Utils::is_numeric($q->param("page")) ) {
+        $page_num = $q->param("page");
     }
 
     if ( !defined($keyword) ) {
@@ -101,8 +103,10 @@ sub do_tag_search {
 
     my $page_num = 1;
 
-    if ( Utils::is_numeric($tmp_hash->{three}) ) {
-        $page_num = $tmp_hash->{three};
+    my $q = new CGI;
+
+    if ( Utils::is_numeric($q->param("page")) ) {
+        $page_num = $q->param("page");
     }
 
     my $rc;

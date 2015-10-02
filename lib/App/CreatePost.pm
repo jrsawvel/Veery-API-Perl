@@ -63,7 +63,9 @@ sub create_post {
     my $hash_ref;
 
     if ( $submit_type eq "Preview" ) {
-        $hash_ref->{html} = $html;
+        $hash_ref->{html}      = $html;
+        $hash_ref->{title}     = $title;
+        $hash_ref->{post_type} = $post_type;
         $hash_ref->{status}      = 200;
         $hash_ref->{description} = "OK";
         my $json_str = JSON::encode_json $hash_ref;

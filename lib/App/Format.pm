@@ -208,14 +208,19 @@ sub get_more_text_info {
         $text_intro = $tmp_post;
     }
 
+# don't need this anymore.
     $text_intro =~ s|\[h1\]|<span class="streamtitle"><a href="/$slug">|;
     $text_intro =~ s|\[/h1\]|</a></span> - |;
+
     $text_intro = Utils::remove_newline($text_intro);
 
-    if ( !$more_text_exists ) {
-        $text_intro = Utils::url_to_link($text_intro);
-        $text_intro = hashtag_to_link($text_intro);
-    }
+#    if ( !$more_text_exists ) {
+#        $text_intro = Utils::url_to_link($text_intro);
+#        $text_intro = hashtag_to_link($text_intro);
+#    }
+
+    $text_intro = Utils::url_to_link($text_intro);
+    $text_intro = hashtag_to_link($text_intro);
 
     return { 'more_text_exists' => $more_text_exists, 'text_intro' => $text_intro };
 }
