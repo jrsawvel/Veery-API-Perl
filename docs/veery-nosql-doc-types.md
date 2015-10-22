@@ -2,9 +2,9 @@
 
 Three "doc" types exist. If Veery used SQL, these would be three separate tables.
 
-more.
-
 Author
+
+`curl http://127.0.0.1:5984/dbname/MrX`
 
     {
         "_id" : "MrX",
@@ -16,7 +16,11 @@ Author
     }
 
 
+
+
 Session ID Description
+
+`curl http://127.0.0.1:5984/dbname/50ff8f05c0f5d95aabbe7c5d81026c1a`
 
     {
         "_id" : "50ff8f05c0f5d95aabbe7c5d81026c1a",
@@ -30,6 +34,8 @@ Session ID Description
 
 Post (Article or Note) Description
 
+`curl http://127.0.0.1:5984/dbname/test-post`
+
     {
         "_id" : "test-post",
         "_rev" : "4-ad0c0316a32ac4b217431127130fd516",
@@ -41,11 +47,10 @@ Post (Article or Note) Description
         "post_type" : "article",
         "markup" : "entire markup of the post",
         "more_text_exists" : 1,
-        "tags" : ["veery","blogging","couchdb"],
+        "tags" : ["scaup","blogging","couchdb"],
         "post_status" : "public",
         "updated_at" : "2015/04/17 14:09:30",
         "word_count" : 432,
         "type" : "post",
         "title" : "Test post"
     }
-
