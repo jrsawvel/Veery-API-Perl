@@ -539,4 +539,3 @@ Currently, searches are done with GET requests. I'm wondering if I should add or
 My Grebe web publishing app offers AND and OR Boolean options with tag searches and with string searches, provided single words are used. This does not exist yet with Veery.
 
 
-
